@@ -1,5 +1,4 @@
 # import libraries 
-
 from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient
 import pandas as pd
 from faker import Faker
@@ -350,8 +349,6 @@ def generate_and_upload_ride_data(year , ride_records , pass_ids , d_ids , c_ids
             r_drop_location = np.random.choice(area)
 
         if r_status == '1': # ride completed
-            # ride starting time
-            # r_start_time = fake.date_time_between_dates(datetime_start = datetime.now() - timedelta(days=3 * 365), datetime_end=datetime.now())
             r_start_time = fake.date_time_between_dates(datetime_start = r_booked_time + datetime.timedelta(minutes=15) , datetime_end = r_booked_time + datetime.timedelta(minutes=30))
             dist_covered_km = fake.random_int(min = 2 , max = 20)
             r_drop_location_changed = np.random.choice(bool_value , p = [0.40 , 0.60])
@@ -365,8 +362,6 @@ def generate_and_upload_ride_data(year , ride_records , pass_ids , d_ids , c_ids
                 extra_dist_covered_km = 0
             total_dist_covered_km = dist_covered_km + extra_dist_covered_km
             r_drop_time = fake.date_time_between_dates(datetime_start = r_start_time + datetime.timedelta(minutes=10) , datetime_end= r_start_time +datetime.timedelta(minutes=60))
-            # ride_coupon_id = np.random.choice(c_ids)
-            # ride_coupon_used = np.random.choice(bool_value)
             ride_fare = 5 * total_dist_covered_km
             payment_mode = np.random.choice(mode , p = [0.50 , 0.50])
             if payment_mode == 'cash':
@@ -391,8 +386,6 @@ def generate_and_upload_ride_data(year , ride_records , pass_ids , d_ids , c_ids
 
         else:
             r_start_time = 'NA'
-            # r_pickup_location = 'NA'
-            # r_drop_location = 'NA'
             dist_covered_km = 0 
             r_drop_location_changed = 'NA'
             r_drop_location_changed_to = 'NA' 
@@ -408,7 +401,6 @@ def generate_and_upload_ride_data(year , ride_records , pass_ids , d_ids , c_ids
             payment_mode_changed = 'NA'
             payment_mode_changed_to = 'NA'
             ride_tip = '0'
-            # total_amount = '0'
             ride_cancelled_by_whom = np.random.choice(['D' , 'Pass'])
             cancellation_reason = np.random.choice(['Changed Mood' , '' ])
             if ride_cancelled_by_whom == 'Pass':
@@ -573,13 +565,7 @@ def upload_to_azure(file_prefix, year, connection_string):
         blob_client.upload_blob(data , overwrite = True)
         
 # Set up Azure Storage connection string
-
-
-
 connection_string = decode(field_values['AZURE_CONNECTION_STRING'])
-
-
-
 
 if date == datetime.datetime.now().date():
     year = 2020
