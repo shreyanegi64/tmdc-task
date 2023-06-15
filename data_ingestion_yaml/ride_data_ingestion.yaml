@@ -1,0 +1,65 @@
+version: v1
+name: wf-uber-data-ride  
+type: workflow
+tags:  
+  - ride
+description: Workflow to ingest data_uber ride csv
+workflow:  
+  title: ride csv 
+  dag:    
+    - name: uber-test-ride
+      title: data_uber Dag
+      description: This job ingests ride csv into icebase catalog and sample schema 
+      spec:     
+        tags:         
+          - ride    
+        stack: flare:3.0        
+        compute: runnable-default
+        flare:         
+          job:            
+            explain: true            
+            inputs:                                
+              - name: data_uber_ride                                                                                              
+                dataset: dataos://azureexternal01:uber_data/ride_data/
+                format: CSV
+                schemaType: sparkjson                     
+                schemaPath: dataos://azureexternal01:uber_data/schema/ride_schema.json
+  
+            logLevel: INFO
+
+            steps:              
+              - sequence:                  
+                - name: ride                        
+                    SELECT *
+                    from data_uber_ride   
+                  functions: 
+                      - name: cleanse_column_names
+
+                      - name: change_column_case 
+                        case: lower
+                                                 
+            outputs:              
+              - name: ride
+                dataset: dataos://icebase:data_uber/sample_ride?acl=rw
+                format: Iceberg
+                title: data_uber
+                description: this dataset contains ride csv from data_uber 
+                tags:                                                                     
+                  - ride
+                options:                  
+                  saveMode: overwrite
+
+    
+    - name: dataos-tool-uber-data-test-ride
+      spec:        
+        stack: toolbox
+        compute: runnable-default
+        toolbox:          
+          dataset: dataos://icebase:data_uber/sample_ride?acl=rw
+          action:            
+            name: set_version
+            value: latest
+      dependencies:        
+        - uber-test-ride
+
+

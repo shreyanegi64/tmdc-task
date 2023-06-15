@@ -1,0 +1,66 @@
+version: v1
+name: wf-uber-data-coupon       
+type: workflow
+tags:  
+  - coupon
+description: Workflow to ingest data_uber coupon csv
+workflow:  
+  title: coupon csv 
+  dag:    
+    - name: uber-test-coupon
+      title: data_uber Dag
+      description: This job ingests coupon csv into icebase catalog and sample schema 
+      spec:     
+        tags:         
+          - coupon    
+        stack: flare:4.0        
+        compute: runnable-default
+        flare:         
+          job:            
+            explain: true            
+            inputs:                                
+              - name: data_uber_coupon                                                                                              
+                dataset: dataos://azureexternal01:uber_data/coupon_data/
+                format: CSV
+                schemaType: sparkjson                     
+                schemaPath: dataos://azureexternal01:uber_data/schema/coupon_schema.json
+  
+            logLevel: INFO
+
+            steps:              
+              - sequence:                  
+                - name: coupon                          
+                  sql: > 
+                    SELECT *
+                    from data_uber_coupon   
+                  functions: 
+                      - name: cleanse_column_names
+
+                      - name: change_column_case 
+                        case: lower
+                                                 
+            outputs:              
+              - name: coupon
+                dataset: dataos://icebase:data_uber/sample_coupon?acl=rw
+                format: Iceberg
+                title: data_uber
+                description: this dataset contains coupon csv from data_uber 
+                tags:                                                                     
+                  - coupon
+                options:                  
+                  saveMode: overwrite
+
+    
+    - name: dataos-tool-uber-data-test-coupon
+      spec:        
+        stack: toolbox
+        compute: runnable-default
+        toolbox:          
+          dataset: dataos://icebase:data_uber/sample_coupon?acl=rw
+          action:            
+            name: set_version
+            value: latest
+      dependencies:        
+        - uber-test-coupon
+
+

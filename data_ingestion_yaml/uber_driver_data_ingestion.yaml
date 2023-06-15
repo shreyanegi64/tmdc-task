@@ -1,0 +1,66 @@
+version: v1
+name: wf-uber-data-driver   
+type: workflow
+tags:  
+  - driver
+description: Workflow to ingest data_uber driver csv
+workflow:  
+  title: driver csv 
+  dag:    
+    - name: uber-test-driver
+      title: data_uber Dag
+      description: This job ingests driver csv into icebase catalog and sample schema 
+      spec:     
+        tags:         
+          - driver    
+        stack: flare:3.0        
+        compute: runnable-default
+        flare:         
+          job:            
+            explain: true            
+            inputs:                                
+              - name: data_uber_driver                                                                                              
+                dataset: dataos://azureexternal01:uber_data/driver_data/
+                format: CSV
+                schemaType: sparkjson                     
+                schemaPath: dataos://azureexternal01:uber_data/schema/driver_schema.json
+  
+            logLevel: INFO
+
+            steps:              
+              - sequence:                  
+                - name: driver                        
+                  sql: > 
+                    SELECT *
+                    from data_uber_driver   
+                  functions: 
+                      - name: cleanse_column_names
+
+                      - name: change_column_case 
+                        case: lower
+              
+            outputs:              
+              - name: driver
+                dataset: dataos://icebase:data_uber/sample_driver?acl=rw
+                format: Iceberg
+                title: data_uber
+                description: this dataset contains driver csv from data_uber 
+                tags:                                                                     
+                  - driver
+                options:                  
+                  saveMode: overwrite
+
+    
+    - name: dataos-tool-uber-data-test-driver
+      spec:        
+        stack: toolbox
+        compute: runnable-default
+        toolbox:          
+          dataset: dataos://icebase:data_uber/sample_driver?acl=rw
+          action:            
+            name: set_version
+            value: latest
+      dependencies:        
+        - uber-test-driver
+
+

@@ -1,0 +1,67 @@
+version: v1
+name: wf-uber-data-coupon-bridge       # Workflow name
+type: workflow
+tags:  
+  - coupon_bridge
+description: Workflow to ingest data_uber coupon_bridge csv
+workflow:  
+  title: coupon_bridge csv 
+  dag:    
+    - name: uber-test-coupon-alloted
+      title: data_uber Dag
+      description: This job ingests coupon_bridge csv into icebase catalog and sample schema 
+      spec:     
+        tags:         
+          - coupon_bridge    
+        stack: flare:4.0        
+        compute: runnable-default 
+        flare:         
+          job:            
+            explain: true            
+            inputs:                                
+              - name: data_uber_coupon_bridge                                                                                              
+                dataset: dataos://azureexternal01:uber_data/coupon_bridge_data/
+                format: CSV
+                schemaType: sparkjson                     
+                schemaPath: dataos://azureexternal01:uber_data/schema/coupon_bridge_schema.json
+
+            logLevel: INFO
+
+            steps:              
+              - sequence:                  
+                - name: coupon_bridge                        
+                  sql: > 
+                    SELECT *
+                    from data_uber_coupon_bridge   
+                  functions: 
+                      - name: cleanse_column_names
+
+                      - name: change_column_case 
+                        case: lower
+                                                 
+            outputs:              
+              - name: coupon_bridge
+                dataset: dataos://icebase:data_uber/sample_coupon_alloted?acl=rw
+                format: Iceberg 
+                title: data_uber
+                description: this dataset contains coupon_bridge csv from data_uber 
+                tags:                                                                     
+                  - coupon_bridge 
+                options:                  
+                  saveMode: overwrite
+
+    
+    
+    - name: dataos-tool-uber-data-test-coupon-bridge
+      spec:        
+        stack: toolbox
+        compute: runnable-default 
+        toolbox:          
+          dataset: dataos://icebase:data_uber/sample_coupon_alloted?acl=rw
+          action:            
+            name: set_version
+            value: latest                    
+      dependencies:        
+        - uber-test-coupon-alloted
+
+

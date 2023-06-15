@@ -1,0 +1,65 @@
+version: v1
+name: wf-uber-data-vehicle     
+type: workflow
+tags:  
+  - vehicle
+description: Workflow to ingest data_uber vehicle csv
+workflow:  
+  title: vehicle csv 
+  dag:    
+    - name: uber-test-vehicle
+      title: data_uber Dag
+      description: This job ingests vehicle csv into icebase catalog and sample schema 
+      spec:     
+        tags:         
+          - vehicle    
+        stack: flare:4.0        
+        compute: runnable-default
+        flare:         
+          job:            
+            explain: true            
+            inputs:                                
+              - name: data_uber_vehicle                                                                                              
+                dataset: dataos://azureexternal01:uber_data/vehicle_data/
+                format: CSV
+                schemaType: sparkjson                     
+                schemaPath: dataos://azureexternal01:uber_data/schema/vehicle_schema.json
+
+            logLevel: INFO
+
+            steps:              
+              - sequence:                  
+                - name: vehicle                          
+                    SELECT *
+                    from data_uber_vehicle   
+                  functions: 
+                      - name: cleanse_column_names
+
+                      - name: change_column_case 
+                        case: lower
+              
+            outputs:              
+              - name: vehicle
+                dataset: dataos://icebase:data_uber/sample_vehicle?acl=rw
+                format: Iceberg
+                title: data_uber
+                description: this dataset contains vehicle csv from data_uber 
+                tags:                                                                     
+                  - vehicle
+                options:                  
+                  saveMode: overwrite
+
+    
+    - name: dataos-tool-uber-data-test-vehicle
+      spec:        
+        stack: toolbox
+        compute: runnable-default
+        toolbox:          
+          dataset: dataos://icebase:data_uber/sample_vehicle?acl=rw
+          action:            
+            name: set_version
+            value: latest
+      dependencies:        
+        - uber-test-vehicle
+
+

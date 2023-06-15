@@ -1,0 +1,66 @@
+version: v1
+name: wf-uber-data-feedback     
+type: workflow
+tags:  
+  - feedback
+description: Workflow to ingest data_uber feedback csv
+workflow:  
+  title: feedback csv 
+  dag:    
+    - name: uber-test-feedback
+      title: data_uber Dag
+      description: This job ingests feedback csv into icebase catalog and sample schema 
+      spec:     
+        tags:         
+          - feedback    
+        stack: flare:4.0        
+        compute: runnable-default
+        flare:         
+          job:            
+            explain: true            
+            inputs:                                
+              - name: data_uber_feedback                                                                                              
+                dataset: dataos://azureexternal01:uber_data/feedback_data/
+                format: CSV
+                schemaType: sparkjson                     
+                schemaPath: dataos://azureexternal01:uber_data/schema/feedback_schema.json
+  
+            logLevel: INFO
+
+            steps:              
+              - sequence:                  
+                - name: feedback                          
+                  sql: > 
+                    SELECT *
+                    from data_uber_feedback   
+                  functions: 
+                      - name: cleanse_column_names
+
+                      - name: change_column_case 
+                        case: lower
+                                                 
+            outputs:              
+              - name: feedback
+                dataset: dataos://icebase:data_uber/sample_feedback?acl=rw
+                format: Iceberg
+                title: data_uber
+                description: this dataset contains feedback csv from data_uber 
+                tags:                                                                     
+                  - feedback
+                options:                  
+                  saveMode: overwrite
+
+    
+    - name: dataos-tool-uber-data-test-feedback
+      spec:        
+        stack: toolbox
+        compute: runnable-default
+        toolbox:          
+          dataset: dataos://icebase:data_uber/sample_feedback?acl=rw
+          action:            
+            name: set_version
+            value: latest
+      dependencies:        
+        - uber-test-feedback
+
+
