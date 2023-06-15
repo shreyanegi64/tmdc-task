@@ -1,0 +1,22 @@
+name: policy-test-hash
+version: v1
+type: policy
+layer: user
+description: "policy to hash on column "
+policy:  
+  data:    
+    type: mask
+    priority: 90    
+    depot: icebase
+    collection: data_uber
+    dataset: sample_ride  
+    selector:      
+      user:        
+        match: any
+        tags:          
+          - "users:id:shreyanegi"      
+      column:        
+        names:          
+          - "payment_method"    
+    mask:      
+      operator: redact

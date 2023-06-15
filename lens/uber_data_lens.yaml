@@ -1,0 +1,712 @@
+name: uberdata
+description: uber data Model 
+owner: shreya
+contract: sample
+entities:
+  - name: vehicle
+    sql:
+      query: >
+        SELECT *  FROM icebase.data_uber.sample_vehicle 
+      columns:
+        - name: v_id
+        - name: v_number
+        - name: v_type
+        - name: v_name
+        - name: v_color
+        - name: v_insurance_end_date
+
+    fields:        
+      - name: v_id
+        description: unique identifier of a customer
+        type: string
+        column:  v_id
+        primary: true
+
+      - name: vehicle_number 
+        type: string
+        column: v_number
+
+      - name: vehicle_type 
+        type: string
+        column: v_type
+
+      - name: vehicle_name 
+        type: string
+        column: v_name
+
+      - name: vehicle_color 
+        type: string
+        column: v_color
+
+      - name: vehicle_insurance_end_date 
+        type: date
+        column: v_insurance_end_date
+        hidden : true
+
+    measures:
+      - name: total_vehicle
+        sql_snippet: ${vehicle.v_id}
+        type: count
+        description: total number of vehicles
+
+    relationships:
+      - type: 1:1
+        field: v_id
+        target:
+          name: driver
+          field: d_v_id
+
+  - name: driver
+    sql:
+      query: >
+        SELECT *  from icebase.data_uber.sample_driver
+      columns:
+        - name: d_id
+        - name: d_name
+        - name: d_ph_n 
+        - name: d_email
+        - name: d_dob
+        - name: d_doj
+        - name: d_gender
+        - name: d_status
+        - name: joined_with_referral
+        - name: d_license_n
+        - name: d_v_id
+
+    fields:
+      - name: d_id 
+        type: string
+        column: d_id
+        description: driver id
+        primary: true
+
+      - name: driver_name
+        type: string
+        column: d_name
+        description: drivers name
+      
+      - name: driver_ph_n
+        type: number
+        column: d_ph_n
+        description: driver phone number
+        hidden: true
+
+      - name: driver_email
+        type: string
+        column: d_email
+        description: drivers email id
+
+      - name: d_dob
+        type: date
+        column: d_dob
+        hidden: true
+
+      - name: d_doj
+        type: date
+        column: d_doj
+        hidden: true
+
+      - name: d_gender
+        type: string
+        column: d_gender
+        hidden: true
+
+      - name: d_status
+        type: string
+        column: d_status
+        hidden: true
+
+      - name: joined_with_referral
+        type: string
+        column: joined_with_referral
+        hidden: true
+
+      - name: driver_license_number
+        type: string
+        column: d_license_n
+      
+      - name: d_v_id
+        type: string
+        column: d_v_id
+
+    dimensions:
+      - name: doj
+        type: date
+        sql_snippet: cast(d_doj as timestamp)
+
+      - name: driver_birth_date
+        type: date
+        sql_snippet: cast(d_dob as timestamp)
+
+      - name: joining_year
+        type: number
+        sql_snippet: extract(year from d_doj)
+
+      - name: gender
+        type: string
+        sql_snippet: case when d_gender = 'M' then 'Male' else 'Female' end
+
+      - name: joining_month
+        type: number
+        sql_snippet: extract(month from d_doj)
+      
+      - name: joining_month_name
+        type: string
+        sql_snippet: date_format(d_doj , '%b')
+
+      - name: driver_joined_with_referral
+        type: string
+        sql_snippet: case when joined_with_referral = 'Y' then 'yes' else 'No' end
+
+      - name: driver_status
+        type: string
+        sql_snippet: case when d_status = 'W' then 'Still Working' else 'Left' end
+
+
+    measures:
+      - name: total_driver
+        sql_snippet: ${driver.d_id}
+        type: count
+        description: total number of drivers
+
+      - name: newest_driver
+        sql_snippet: ${driver.doj}
+        type: min
+
+      - name: oldest_driver
+        sql_snippet: ${driver.doj}
+        type: max
+
+    relationships:
+      - type: 1:N
+        field: d_id
+        target:
+            name: ride
+            field: r_d_id 
+
+  - name: passenger
+    sql:
+      query: >
+        SELECT * from icebase.data_uber.sample_passenger
+
+      columns:
+        - name: pass_id
+        - name: pass_name
+        - name: pass_ph_no
+        - name: pass_email
+        - name: pass_dob
+        - name: sign_up_date
+        - name: pass_gender
+        - name: pass_occupation
+        - name: device_os
+        - name: wallet_attached
+
+    fields:
+      - name: pass_id
+        type: string
+        column: pass_id
+        primary: true
+
+      - name: passenger_name
+        type: string
+        column: pass_name
+
+      - name: passenger_phone_number
+        type: number
+        column: pass_ph_no
+        hidden: true
+        
+      - name: passenger_email
+        type: string
+        column: pass_email
+
+      - name: passenger_dob
+        type: date
+        column: pass_dob
+        hidden : true
+
+      - name: sign_up_date
+        type: date
+        column: sign_up_date
+        hidden: true
+
+      - name: passenger_gender
+        type: string
+        column: pass_gender
+        hidden: true
+
+      - name: passenger_occupation
+        type: string
+        column: pass_occupation
+
+      - name: device_os
+        type: string
+        column: device_os
+    
+      - name: wallet_attached
+        type: string
+        column: wallet_attached
+
+    dimensions:
+      - name: passenger_sign_up_date
+        type: date
+        sql_snippet: cast(sign_up_date as timestamp)
+
+      - name: passenger_birth_date
+        type: date
+        sql_snippet: cast(passenger_dob as timestamp)
+
+      - name: sign_up_year
+        type: number
+        sql_snippet: extract(year from sign_up_date)
+
+      - name: gender
+        type: string
+        sql_snippet: case when pass_gender = 'M' then 'Male' else 'Female' end 
+
+    measures:        
+      - name: total_passenger
+        type: count
+        sql_snippet: ${passenger.pass_id} 
+
+    relationships:
+      - type: 1:1
+        field: pass_id
+        target:
+          name: coupon_alloted
+          field: c_pass_id 
+
+      - type: 1:N
+        field: pass_id
+        target:
+          name: coupon
+          field: c_pass_id
+
+  - name: coupon
+    sql:
+      query: >
+        SELECT * FROM icebase.data_uber.sample_coupon
+      columns:
+        - name: c_id
+        - name: c_code
+        - name: c_discount
+        - name: c_pass_id
+        - name: c_allocation_date
+        - name: c_validity_date
+
+    fields:        
+      - name: c_id
+        type: string
+        column: c_id
+        primary:  true
+
+      - name: coupon_code
+        type: string
+        column: c_code
+        
+      - name: c_discount 
+        type: number
+        sql_snippet: c_discount
+
+      - name: c_pass_id 
+        type: string
+        sql_snippet: c_pass_id
+
+      - name: c_allocation_date 
+        type: date
+        sql_snippet: c_allocation_date
+
+      - name: c_validity_date
+        type: date
+        sql_snippet: c_validity_date
+
+    dimensions:
+      - name: coupon_allocation_date
+        type: date
+        sql_snippet: cast(c_allocation_date as timestamp)
+
+      - name: coupon_validity_date
+        type: date
+        sql_snippet: cast(c_validity_date as timestamp)
+
+  - name: coupon_alloted
+    sql:
+      query: >
+        SELECT * ,  FROM icebase.data_uber.sample_coupon_alloted
+      columns:
+        - name: c_pass_id
+        - name: c_ids_alloted
+
+    fields:        
+      - name: c_pass_id
+        type: string
+        column: c_pass_id
+        primary: true
+
+      - name: c_ids_alloted 
+        type: string
+        sql_snippet: c_ids_alloted
+
+  - name: ride
+    sql: 
+      query: >
+        select * ,  (penalty + ride_surge_charge + ride_fare) AS revenue from icebase.data_uber.sample_ride
+      columns:
+        - name: r_id
+        - name: r_pass_id
+        - name: r_d_id 
+        - name: r_booked_time
+        - name: r_pickup_location
+        - name: r_drop_location
+        - name: r_status
+        - name: r_start_time
+        - name: dist_covered_km
+        - name: r_drop_location_changed
+        - name: r_drop_location_changed_to
+        - name: extra_dist_covered_km
+        - name: total_dist_covered_km
+        - name: r_drop_time
+        - name: ride_fare
+        - name: ride_tip 
+        - name: ride_cancelled_by_whom
+        - name: penalty
+        - name: payment_mode
+        - name: payment_method
+        - name: payment_mode_changed
+        - name: payment_mode_changed_to
+        - name: payment_status
+        - name: r_v_id
+        - name: r_shift
+        - name: coupons_alloted 
+        - name: coupon_used
+        - name: ride_c_id
+        - name: driver_rating
+        - name: ride_surge_charge
+        - name: coupon_discount
+        - name: coupon_amount
+        - name: final_amount
+        - name: revenue
+        - name: cancellation_reason
+
+    fields:        
+      - name: r_id
+        type: string
+        column: r_id
+        primary:  true
+
+      - name: r_pass_id
+        type: string
+        column: r_pass_id
+        hidden: true
+        
+      - name: r_d_id 
+        type: string
+        sql_snippet: r_d_id
+        hidden: true
+
+      - name: r_booked_time 
+        type: date
+        sql_snippet: r_booked_time
+        hidden: true
+
+      - name: r_pickup_location 
+        type: string
+        sql_snippet: r_pickup_location
+
+      - name: r_drop_location
+        type: string
+        sql_snippet: r_drop_location
+
+      - name: r_status
+        type: string
+        column: r_status 
+        hidden: true
+
+      - name: r_start_time
+        type: date
+        column: r_start_time
+        hidden: true
+        
+      - name: dist_covered_km 
+        type: number
+        sql_snippet: dist_covered_km
+
+      - name: r_drop_location_changed 
+        type: string
+        sql_snippet: r_drop_location_changed
+
+      - name: r_drop_location_changed_to 
+        type: string
+        sql_snippet: r_drop_location_changed_to
+
+      - name: extra_dist_covered_km
+        type: number
+        sql_snippet: extra_dist_covered_km
+
+      - name: total_dist_covered_km
+        type: number
+        column: total_dist_covered_km
+
+      - name: r_drop_time
+        type: date
+        column: r_drop_time
+        hidden: true
+        
+      - name: ride_fare 
+        type: number
+        sql_snippet: ride_fare
+
+      - name: ride_tip  
+        type: number
+        sql_snippet: ride_tip 
+
+      - name: ride_cancelled_by_whom
+        type: string
+        sql_snippet: ride_cancelled_by_whom
+        hidden: true
+
+      - name: penalty
+        type: number
+        column: penalty
+
+      - name: payment_mode
+        type: string
+        column: payment_mode
+        
+      - name: payment_method 
+        type: string
+        sql_snippet: payment_method
+
+      - name: payment_mode_changed 
+        type: string
+        sql_snippet: payment_mode_changed
+
+      - name: payment_mode_changed_to 
+        type: string
+        sql_snippet: payment_mode_changed_to
+
+      - name: payment_status
+        type: string
+        sql_snippet: payment_status
+
+      - name: r_v_id 
+        type: string
+        sql_snippet: r_v_id
+
+      - name: r_shift  
+        type: string
+        sql_snippet: r_shift 
+
+      - name: coupons_alloted 
+        type: string
+        sql_snippet: coupons_alloted
+
+      - name: coupon_used
+        type: string
+        sql_snippet: coupon_used
+
+      - name: ride_c_id
+        type: string
+        column: ride_c_id
+
+      - name:  driver_rating
+        type: number
+        column:  driver_rating
+        hidden: true
+        
+      - name: ride_surge_charge 
+        type: number
+        sql_snippet: ride_surge_charge
+
+      - name: coupon_discount 
+        type: number
+        sql_snippet: coupon_discount
+
+      - name: coupon_amount 
+        type: number
+        sql_snippet: coupon_amount
+
+      - name: final_amount
+        type: number
+        sql_snippet: final_amount
+
+      - name: revenue
+        type: number
+        sql_snippet: revenue
+
+      - name: cancellation_reason
+        type: string
+        sql_snippet: cancellation_reason
+
+    dimensions:
+      - name: ride_booked_time
+        type: date
+        sql_snippet: cast(r_booked_time as timestamp)
+
+      - name: ride_start_time
+        type: date
+        sql_snippet: cast(r_start_time as timestamp)
+
+      - name: ride_drop_time
+        type: date
+        sql_snippet: cast(r_drop_time as timestamp)
+
+      - name: month
+        type: number
+        sql_snippet: extract(month from r_booked_time)
+      
+      - name: month_name
+        type: string
+        sql_snippet: date_format(r_booked_time , '%b')
+
+      - name: ride_year
+        type: number
+        sql_snippet: extract(year from r_booked_time)
+
+      - name: weekday_number
+        type: number  
+        sql_snippet: day_of_week(r_booked_time)
+
+      - name: weekday_name
+        type: string
+        sql_snippet: date_format(r_booked_time, '%W')
+
+      - name: hour
+        type: number
+        sql_snippet: case when extract(hour from r_booked_time) = 0 then 24 else extract(hour from r_booked_time) end
+
+      - name: ride_status
+        type: string
+        sql_snippet: case when r_status = '0' then 'cancelled' else 'completed' end
+
+      - name: cancelled_by
+        type: string
+        sql_snippet: case when ride_cancelled_by_whom= 'NA' then 'ride completed' when ride_cancelled_by_whom = 'D' then 'Driver' when ride_cancelled_by_whom = 'Pass' then 'Passenger' end
+
+    measures:
+      - name: total_rides
+        sql_snippet: ${ride.r_id}
+        type: count
+        description: total number of rides
+
+      - name: total_passengers
+        sql_snippet: ${ride.r_pass_id}
+        type: count_distinct
+
+      - name: first_ride
+        sql_snippet: ${ride.r_booked_time}
+        type: min
+
+      - name: last_ride
+        sql_snippet: ${ride.r_booked_time}
+        type: max
+
+      - name: ratings
+        sql_snippet: ${ride.driver_rating}
+        type: sum
+        hidden: true
+
+      - name: driver_ratings
+        sql_snippet: ${ride.ratings}/${ride.total_rides}
+        type: number
+        # hidden: true
+
+      - name: ride_fare_total
+        sql_snippet: ${ride.ride_fare}
+        type: sum
+      
+      - name: surge_charge_total
+        sql_snippet: ${ride.ride_surge_charge}
+        type: sum
+
+      - name: penalty_total
+        sql_snippet: ${ride.penalty}
+        type: sum
+
+      - name: total_revenue
+        sql_snippet: round(${ride.revenue} , 2)
+        type: sum
+
+      - name: total_distance
+        sql_snippet: ${ride.total_dist_covered_km}
+        type: sum 
+
+      - name: avg_surge_charge
+        sql_snippet: ${ride.ride_surge_charge}
+        type: avg 
+
+      - name: average_revenue
+        sql_snippet: round(${ride.revenue},2)
+        type: avg
+
+      - name: average_ride_fare
+        sql_snippet: ${ride.ride_fare}
+        type: avg
+
+      - name: average_ride_distance
+        sql_snippet: round(${ride.total_dist_covered_km},2)
+        type: avg
+
+      - name: average_revenue_per_user
+        sql_snippet: round(${ride.total_revenue}/${ride.total_passengers},2)
+        type: number
+
+    relationships:
+      - type: N:1
+        field:  r_pass_id
+        target:
+          name: passenger
+          field: pass_id
+
+  - name: feedback
+    sql:
+      query: >
+        SELECT *  FROM icebase.data_uber.sample_feedback
+      columns:
+        - name: r_id
+        - name: feedback_id
+        - name: v_id
+        - name: v_type
+        - name: questions
+        - name: answers
+
+    fields:        
+      - name: r_id
+        type: string
+        column:  r_id
+
+      - name: feedback_id 
+        type: string
+        column: feedback_id
+        primary: true
+
+      - name: v_id 
+        type: string
+        column: v_id
+        hidden: true
+
+      - name: v_type 
+        type: string
+        column: v_type
+        hidden: true
+
+      - name: questions 
+        type: string
+        column: questions
+
+      - name: answers 
+        type: number
+        column: answers
+
+    relationships:
+      - type: N:1
+        field: r_id
+        target:
+          name: ride  
+          field: r_id
+
+
+
+
+          
+

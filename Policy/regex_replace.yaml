@@ -1,0 +1,25 @@
+name: policy-test-regex-replace
+version: v1
+type: policy
+layer: user
+description: "mask policy on a column using regex_replace operator"
+policy:  
+  data:    
+    type: mask
+    priority: 90    
+    depot: icebase
+    collection: data_uber
+    dataset: sample_driver  
+    selector:      
+      user:        
+        match: any
+        tags:          
+          - "users:id:shreyanegi"      
+      column:        
+        names:          
+          - "d_ph_n"    
+    mask:      
+      operator: regex_replace
+      regex_replace:
+          pattern: '[0-9]'
+          replacement: '#'

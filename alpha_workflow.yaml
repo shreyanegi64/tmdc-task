@@ -1,0 +1,71 @@
+version: v1
+name: alpha-workflow
+type: workflow
+workflow:
+  dag:
+    - name: fetch-data
+      spec:
+        resources:
+          requests:
+            cpu: 1
+            memory: 1Gi 
+          limits: 
+            cpu: 1
+            memory: 1Gi
+        stack: alpha
+        compute: runnable-default
+
+        envs:
+          DATE: '2023-6-2'
+          secrets: "--config /etc/dataos/config/azureCred.conf"
+        configs:
+           azureCred.conf: /home/shreyanegi/Documents/assignment/uber_data/azure_credentials.json
+
+        alpha:
+          image: shreyanegi64/test_data:latest
+          command:
+            - python3  
+          arguments:
+            - run
+            - uber_fake_data_azure.py
+
+
+
+
+
+
+
+
+# version: v1
+# name: alpha-workflow
+# type: workflow
+# workflow:
+#   # schedule:
+#   #   cron: '*/5 * * * *'
+#   dag:
+#     - name: fetch-data
+#       spec: 
+#         resources:
+#           requests:
+#             cpu: 1
+#             memory: 1Gi 
+#           limits: 
+#             cpu: 1
+#             memory: 1Gi
+#       dataosSecrets:
+#         - name: 
+#           workspace: public
+#           keys: 
+#             - test
+#         envs :
+#           DATE: '2023-6-2'
+#         stack: alpha 
+#         compute: runnable-default 
+#         alpha:
+#           image: shreyanegi64/fake_image:1.0.5
+#           imagePullSecret: shreya-docker-secret
+#           command:
+#             - python
+#           arguments:
+#             - run
+#             - uber_fake_data_azure.py
