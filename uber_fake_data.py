@@ -315,7 +315,6 @@ def generate_and_upload_ride_data(year , ride_records , pass_ids , d_ids , c_ids
         
     first_date = datetime.datetime(year, 1, 1)
     last_date = datetime.datetime(year, 12, 31)
-    # date_range = pd.date_range(first_date, last_date, freq='D')
         
     ride_data = []
     for r_id in r_ids:
@@ -326,8 +325,6 @@ def generate_and_upload_ride_data(year , ride_records , pass_ids , d_ids , c_ids
         mode = ['cash' , 'online']
         method = ['upi' , 'credit card' , 'debit card' , 'wallet']
         status = ['completed' , 'failed' , 'pending']
-        
-        # ride_payment_id = np.random.choice(payment_Ids)
         r_pass_id = np.random.choice(pass_ids)
         r_d_id = np.random.choice(d_ids)
         r_booked_time = fake.date_time_between(start_date = first_date , end_date = last_date )
@@ -340,8 +337,6 @@ def generate_and_upload_ride_data(year , ride_records , pass_ids , d_ids , c_ids
             r_drop_location = np.random.choice(area)
 
         if r_status == '1': # ride completed
-            # ride starting time
-            # r_start_time = fake.date_time_between_dates(datetime_start = datetime.now() - timedelta(days=3 * 365), datetime_end=datetime.now())
             r_start_time = fake.date_time_between_dates(datetime_start = r_booked_time + datetime.timedelta(minutes=15) , datetime_end = r_booked_time + datetime.timedelta(minutes=30))
             dist_covered_km = fake.random_int(min = 2 , max = 20)
             r_drop_location_changed = np.random.choice(bool_value , p = [0.40 , 0.60])
@@ -423,10 +418,8 @@ def generate_and_upload_ride_data(year , ride_records , pass_ids , d_ids , c_ids
                 #   'ride_coupon_id':ride_coupon_id , 'ride_coupon_used' : ride_coupon_used 
                     }
         ride_data.append(record)
-    
 
         ride_df = pd.DataFrame(ride_data)
-        # ride_df.head(15)
 
         ride_df['r_v_id'] = ride_df['r_d_id'].map(driver_df.set_index('d_id')['d_v_id'])
         ride_df['r_shift'] = pd.cut(ride_df['r_booked_time'].dt.hour,
@@ -517,7 +510,7 @@ def generate_and_upload_feedback_data(year , f_records , ride_df , vehicle_df , 
     return feedback_df
 
 def upload_to_azure(file_prefix, year, connection_string):
-    container_name = "thirdparty001"
+    container_name = "container name"
     folder_name = "uber_data"
     subfolder_name = None
     
@@ -548,7 +541,7 @@ def upload_to_azure(file_prefix, year, connection_string):
         blob_client.upload_blob(data , overwrite = True)
         
 # Set up Azure Storage connection string
-connection_string = "AccountName=mockdataos;AccountKey=QwfO54FD2OkzE+6H+yR0V0eR5x26vmRFXXH8eVzcRvFCaXBEJJKxXlhTqfElIQovHxqmVhkp5lWl+AStG+o7BQ==;EndpointSuffix=core.windows.net;DefaultEndpointsProtocol=https;" 
+connection_string = "connection string" 
 
 if date == datetime.datetime.now().date():
     year = 2020
