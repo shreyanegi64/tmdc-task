@@ -1,0 +1,28 @@
+version: v1
+name: alpha-stack
+type: service
+
+service:
+  title: alpha-stack-python-file
+  replicas: 1
+  servicePort: 8080
+  ingress:                                # configure ingress
+    enabled: true
+    noAuthentication: true
+    path: /file_python                     # 
+    stripPath: true
+  envs:
+    LOG_LEVEL: info
+    CONTAINER_NAME: filefolder
+    
+  stack: alpha
+  compute: runnable-default
+  alpha:
+    image: shreyanegi64/file_python         # docker image 
+    command:
+      - python3  
+    arguments:
+      - run
+      - test_file1.py
+
+

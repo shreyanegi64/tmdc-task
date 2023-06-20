@@ -1,0 +1,31 @@
+version: v1
+name: rclone-wf
+type: workflow
+workflow:
+  dag:
+    - name: local-azure
+      spec:
+        resources:
+          requests:
+            cpu: 2000m
+            memory: 2000Mi
+          limits:
+            cpu: 2000m
+            memory: 2000Mi
+        
+        envs:
+          SYNC_SRC: "s3:test1"
+          SYNC_DEST: "s2:filefolder"
+          SYNC_OPTS: "-v"           # print lots more stuff
+          SYNC_MODE: "sync"
+          RCLONE_OPTS: "--config /etc/dataos/config/myConfig.conf"
+        configs:
+          myConfig.conf: /home/shreyanegi/.config/rclone/rclone.conf
+        stack: alpha
+        compute: runnable-default
+        alpha:
+          image: shreyanegi64/task3
+          imagePullSecret: shreya-docker-secret
+
+
+# admin:///root/.config/rclone/rclone.conf                config_file_path
