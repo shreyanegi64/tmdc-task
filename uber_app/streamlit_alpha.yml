@@ -1,0 +1,26 @@
+version: v1
+name: uber-app
+type: service
+service:
+  replicas: 1
+  servicePort: 8501
+  ingress:
+    enabled: true
+    noAuthentication: true
+    path: /uber-app
+    stripPath: true
+  stack: alpha
+  compute: runnable-default
+  resources:
+    requests: 
+      cpu: 100m
+      memory: 512Mi
+  envs:
+    LOG_LEVEL: DEBUG
+  alpha:
+    command:
+      - streamlit  
+    arguments:
+      - run
+      - uber.py
+    image: shreyanegi64/uber_app:1.0.1
